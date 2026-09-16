@@ -21,6 +21,7 @@ class Circle:
         self.y = y
         self.r = r
         self.color = color
+        self.mass = r * r
         self.dx = random.randint(-4, 4)
         self.dy = random.randint(-4, 4)
 
@@ -89,24 +90,37 @@ while running: # game loop
     for circle in circles:
         circle.move()
 
-
-    # collisions between circles
+    # gravity and collisions between circles
     for i in range(len(circles)):
         for j in range(i + 1, len(circles)):
 
             c1 = circles[i]
             c2 = circles[j]
 
-            distance = math.sqrt(
-                (c1.x - c2.x) ** 2 +
-                (c1.y - c2.y) ** 2
-            )
+            dx = c2.x - c1.x
+            dy = c2.y - c1.y
 
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+
+            if distance == 0:
+                continue
+
+            # makes nearby circles pull toward each other
+            force = 0.01 * c1.mass * c2.mass / (distance ** 2)
+
+            fx = force * dx / distance
+            fy = force * dy / distance
+
+            c1.dx += fx / c1.mass
+            c1.dy += fy / c1.mass
+
+            c2.dx -= fx / c2.mass
+            c2.dy -= fy / c2.mass
+
+            # checks to see whether two circles are touching/overlapping
             if distance <= c1.r + c2.r:
-                c1.dx *= -1
-                c1.dy *= -1
-                c2.dx *= -1
-                c2.dy *= -1
+                c1.dx, c2.dx = c2.dx, c1.dx
+                c1.dy, c2.dy = c2.dy, c1.dy
 
     screen.fill((20, 24, 40))
     # pygame.draw.circle(screen, circle_color, (x,y), r)
